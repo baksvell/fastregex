@@ -1,0 +1,91 @@
+# ==================== #
+#  PyCharm специфичное
+# ==================== #
+.idea/
+*.iml
+*.ipr
+*.iws
+.idea_modules/
+
+# Директории кэша PyCharm
+.idea/caches/
+.idea/libraries/
+.idea/shelf/
+.idea/tasks.xml
+.idea/workspace.xml
+
+# ==================== #
+#  Ninja/CMake
+# ==================== #
+.ninja_deps
+.ninja_log
+build.ninja
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+*.cmake
+Makefile
+
+# ==================== #
+#  Python
+# ==================== #
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+*.egg
+dist/
+build/
+pip-wheel-metadata/
+.python-version
+venv/
+.env
+.env/
+
+# ==================== #
+#  C++/JIT
+# ==================== #
+*.o
+*.obj
+*.out
+*.exe
+*.a
+*.lib
+*.dll
+*.dylib
+*.exp
+*.pdb
+*.ilk
+*.ll
+*.bc
+*.s
+
+# ==================== #
+#  Тесты и отладка
+# ==================== #
+*.profraw
+*.profdata
+*.gcda
+*.gcno
+coverage/
+perf.data*
+
+# ==================== #
+#  Системные файлы
+# ==================== #
+.DS_Store
+*.swp
+*.swo
+*~
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ==================== #
+#  Дополнительно
+# ==================== #
+# Локальные настройки (но не трогаем основные конфиги)
+.vscode/settings.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
