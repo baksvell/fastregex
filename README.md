@@ -126,6 +126,46 @@ mkdir build && cd build
 cmake -DCMAKE_BUILD_TYPE=Release ..
 cmake --build .
 
+Когда использовать:
+
+## 🛠 Smart Usage Guide / Рекомендации по использованию
+
+### English Version
+**When to use FastRegex:**
+- ✅ **Complex patterns** (JIT compilation shines)
+- ✅ **Repetitive matching** (cache pays off)
+- ✅ **SIMD-friendly patterns** (literals, digit checks)
+- ✅ **Large texts** (>1MB optimized chunks)
+
+**When to use standard `re`:**
+- ⚠️ **Simple one-time matches** (no JIT overhead)
+- ⚠️ **Need 100% compatibility** with Python's regex
+- ⚠️ **Dynamic patterns** (generated on-the-fly)
+
+**Hybrid approach example:**
+```python
+import re
+import fastregex as fr
+
+def smart_match(pattern, text):
+    if len(pattern) > 15 and len(text) > 1000:  # Thresholds
+        return fr.search(pattern, text)
+    return re.search(pattern, text)
+```
+
+### Русская версия
+**Когда использовать FastRegex:**
+- ✅ **Сложные шаблоны** (JIT-компиляция)
+- ✅ **Многократный поиск** (кеш выгоден)
+- ✅ **Шаблоны для SIMD** (буквальные строки, цифры)
+- ✅ **Большие тексты** (>1MB оптимизированных блоков)
+
+**Когда использовать стандартный `re`:**
+- ⚠️ **Простые одноразовые поиски** (без JIT-накладных расходов)
+- ⚠️ **Нужна 100% совместимость** с Python-регулярками
+- ⚠️ **Динамические шаблоны** (генерируемые на лету)
+
+
 License / Лицензия
 MIT License - see LICENSE
 Лицензия MIT - см. LICENSE
