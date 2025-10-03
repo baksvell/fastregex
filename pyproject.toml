@@ -1,0 +1,73 @@
+[build-system]
+requires = ["setuptools>=45", "wheel", "cmake>=3.20", "pybind11>=2.10"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fastregex"
+version = "0.1.0"
+description = "High-performance regex with JIT/SIMD optimizations"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "baksvell", email = "patsi2@yandex.ru"}
+]
+maintainers = [
+    {name = "baksvell", email = "patsi2@yandex.ru"}
+]
+keywords = ["regex", "regular expressions", "performance", "optimization", "JIT", "SIMD"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: C++",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Text Processing :: General",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Operating System :: OS Independent",
+]
+requires-python = ">=3.10"
+dependencies = [
+    "pybind11>=2.10",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=6.0",
+    "pytest-benchmark>=3.0",
+    "numpy>=1.20",
+]
+benchmark = [
+    "numpy>=1.20",
+    "matplotlib>=3.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/baksvell/Fastregex"
+Repository = "https://github.com/baksvell/Fastregex"
+Documentation = "https://github.com/baksvell/Fastregex#readme"
+"Bug Tracker" = "https://github.com/baksvell/Fastregex/issues"
+
+[tool.setuptools]
+packages = []
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+
+[tool.coverage.run]
+source = ["fastregex"]
+omit = ["tests/*", "build/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+]

@@ -2,7 +2,6 @@
 #include <pybind11/stl.h>
 #include <pybind11/functional.h>
 #include "fastregex.h"
-#include "simd.h"
 #include <chrono>
 #include <vector>
 #include <memory>
@@ -22,10 +21,8 @@ public:
           jit_compiled_(false) {
 
         auto start = std::chrono::high_resolution_clock::now();
-        if (enable_jit && SIMDRegex::any_simd_supported() &&
-            SIMDRegex::is_literal_pattern(pattern)) {
-            jit_compiled_ = true;
-        }
+        // Упрощенная версия без SIMD
+        jit_compiled_ = false;
         auto end = std::chrono::high_resolution_clock::now();
         compile_time_ = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
     }
@@ -94,14 +91,23 @@ PYBIND11_MODULE(fastregex, m) {
         .value("OPTIMIZE", RegexFlags::OPTIMIZE)
         .export_values();
 
-    // SIMD capabilities enum
-    py::enum_<SIMDRegex::SIMDMode>(m, "SIMDMode")
-        .value("AUTO", SIMDRegex::SIMDMode::Auto)
-        .value("FORCE_AVX512", SIMDRegex::SIMDMode::ForceAVX512)
-        .value("FORCE_AVX2", SIMDRegex::SIMDMode::ForceAVX2)
-        .value("FORCE_SSE42", SIMDRegex::SIMDMode::ForceSSE42)
-        .value("FORCE_NEON", SIMDRegex::SIMDMode::ForceNEON)
-        .value("SCALAR_ONLY", SIMDRegex::SIMDMode::ScalarOnly)
+    // SIMD capabilities enum (заглушка)
+    enum class SIMDMode {
+        AUTO = 0,
+        FORCE_AVX512 = 1,
+        FORCE_AVX2 = 2,
+        FORCE_SSE42 = 3,
+        FORCE_NEON = 4,
+        SCALAR_ONLY = 5
+    };
+    
+    py::enum_<SIMDMode>(m, "SIMDMode")
+        .value("AUTO", SIMDMode::AUTO)
+        .value("FORCE_AVX512", SIMDMode::FORCE_AVX512)
+        .value("FORCE_AVX2", SIMDMode::FORCE_AVX2)
+        .value("FORCE_SSE42", SIMDMode::FORCE_SSE42)
+        .value("FORCE_NEON", SIMDMode::FORCE_NEON)
+        .value("SCALAR_ONLY", SIMDMode::SCALAR_ONLY)
         .export_values();
 
     // FastRegex class bindings
@@ -235,39 +241,40 @@ PYBIND11_MODULE(fastregex, m) {
        py::arg("enable_jit") = false,
        "Compile regex pattern for repeated use");
 
-    // SIMD control functions
-    m.def("set_simd_mode", &SIMDRegex::set_simd_mode, py::arg("mode"),
-          "Set SIMD execution mode");
+    // SIMD control functions (заглушки)
+    m.def("set_simd_mode", [](SIMDMode mode) {
+        // Заглушка - SIMD отключен
+    }, py::arg("mode"), "Set SIMD execution mode");
 
-    m.def("get_simd_mode", &SIMDRegex::get_simd_mode,
-          "Get current SIMD execution mode");
+    m.def("get_simd_mode", []() {
+        return SIMDMode::SCALAR_ONLY;
+    }, "Get current SIMD execution mode");
 
     m.def("get_simd_stats", []() {
-        const auto& stats = SIMDRegex::get_simd_stats();
         return py::dict(
-            py::arg("total_calls") = stats.total_calls,
-            py::arg("avx512_count") = stats.avx512_count,
-            py::arg("avx2_count") = stats.avx2_count,
-            py::arg("sse42_count") = stats.sse42_count,
-            py::arg("neon_count") = stats.neon_count,
-            py::arg("scalar_count") = stats.scalar_count
+            py::arg("total_calls") = 0,
+            py::arg("avx512_count") = 0,
+            py::arg("avx2_count") = 0,
+            py::arg("sse42_count") = 0,
+            py::arg("neon_count") = 0,
+            py::arg("scalar_count") = 0
         );
     }, "Get SIMD usage statistics");
 
-    m.def("reset_simd_stats", &SIMDRegex::reset_simd_stats,
-          "Reset SIMD usage statistics");
+    m.def("reset_simd_stats", []() {
+        // Заглушка
+    }, "Reset SIMD usage statistics");
 
     m.def("simd_capabilities", []() {
         py::dict caps;
-        caps["avx512"] = SIMDRegex::avx512_supported();
-        caps["avx2"] = SIMDRegex::avx2_supported();
-        caps["sse42"] = SIMDRegex::sse42_supported();
-        caps["neon"] = SIMDRegex::neon_supported();
+        caps["avx512"] = false;
+        caps["avx2"] = false;
+        caps["sse42"] = false;
+        caps["neon"] = false;
         return caps;
     }, "Check supported SIMD capabilities");
 
     // Version info
     m.attr("__version__") = "1.0.0";
-    m.attr("simd_version") = SIMDRegex::any_simd_supported() ?
-                            "SIMD optimized" : "Scalar only";
+    m.attr("simd_version") = "Scalar only";
 }

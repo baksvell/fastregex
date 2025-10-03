@@ -29,24 +29,27 @@ set(CMAKE_MINSIZEREL_POSTFIX "_ms")
 
 # Поиск Python
 find_package(Python 3.10 REQUIRED COMPONENTS Interpreter Development.Module)
+
+# Поиск pybind11
+set(pybind11_DIR "C:/Python312/Lib/site-packages/pybind11/share/cmake/pybind11")
 find_package(pybind11 REQUIRED CONFIG)
 
 # Настройки для LLVM/JIT
 if(FASTREGEX_ENABLE_JIT)
-    find_package(LLVM 20.1 REQUIRED CONFIG)
-    message(STATUS "JIT compilation enabled")
-
-    llvm_map_components_to_libnames(LLVM_LIBS
-        Core
-        ExecutionEngine
-        OrcJIT
-        Support
-        Target
-        X86CodeGen
-        X86AsmParser
-        X86Desc
-        X86Disassembler
-    )
+    # Попробуем найти LLVM через llvmlite
+    find_package(PkgConfig QUIET)
+    if(PkgConfig_FOUND)
+        pkg_check_modules(LLVM QUIET llvm)
+        if(LLVM_FOUND)
+            message(STATUS "JIT compilation enabled via pkg-config")
+        else()
+            message(STATUS "JIT compilation requested but LLVM not found - building without JIT")
+            set(FASTREGEX_ENABLE_JIT OFF)
+        endif()
+    else()
+        message(STATUS "JIT compilation requested but pkg-config not available - building without JIT")
+        set(FASTREGEX_ENABLE_JIT OFF)
+    endif()
 endif()
 
 # Настройки для MinGW
@@ -58,30 +61,42 @@ if(MINGW AND EXISTS "${MINGW_ROOT}/bin/g++.exe")
 endif()
 
 # Глобальные флаги компиляции
-add_compile_options(
-    -Wall
-    -Wextra
-    -Wpedantic
-    -fvisibility=hidden
-    -fexceptions
-    -fPIC
-)
+if(MSVC)
+    add_compile_options(
+        /W3
+        /EHsc
+    )
+else()
+    add_compile_options(
+        -Wall
+        -Wextra
+        -Wpedantic
+        -fvisibility=hidden
+        -fexceptions
+        -fPIC
+    )
+endif()
 
 # SIMD оптимизации
 if(FASTREGEX_ENABLE_SIMD AND CMAKE_SYSTEM_PROCESSOR MATCHES "(x86_64|AMD64|i[3-6]86)")
-    add_compile_options(-mavx2 -mbmi2 -mfma -msse4.2)
-    message(STATUS "x86 SIMD optimizations enabled")
+    if(MSVC)
+        add_compile_options(/arch:AVX2)
+        message(STATUS "x86 SIMD optimizations enabled (MSVC)")
+    else()
+        add_compile_options(-mavx2 -mbmi2 -mfma -msse4.2)
+        message(STATUS "x86 SIMD optimizations enabled (GCC/Clang)")
+    endif()
 endif()
 
 # Исходные файлы
 set(SOURCE_FILES
-    src/fastregex.cpp
+    src/fastregex_full.cpp
     src/python/module.cpp
 )
 
 # Добавление SIMD файлов
 if(FASTREGEX_ENABLE_SIMD)
-    set(SIMD_FILE src/jit_engine/simd.cpp)
+    set(SIMD_FILE src/jit_engine/simd_fixed.cpp)
     if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${SIMD_FILE})
         list(APPEND SOURCE_FILES ${SIMD_FILE})
         message(STATUS "Found SIMD file: ${SIMD_FILE}")

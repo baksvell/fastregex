@@ -1,0 +1,13 @@
+include README.md
+include LICENSE
+include CMakeLists.txt
+include requirements.txt
+include pyproject.toml
+recursive-include src *.cpp *.h *.hpp
+recursive-include tests *.py
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]
+recursive-exclude * build
+recursive-exclude * *.egg-info
+
+

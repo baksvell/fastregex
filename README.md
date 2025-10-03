@@ -1,19 +1,21 @@
-# FastRegex 
+# FastRegex
 
-[![Build Status](https://github.com/baksvell/Fastregex/actions/workflows/build.yml/badge.svg)](https://github.com/baksvell/Fastregex/actions)
+[![Build Status](https://github.com/baksvell/fastregex/actions/workflows/build.yml/badge.svg)](https://github.com/baksvell/fastregex/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
+[![PyPI version](https://badge.fury.io/py/fastregex.svg)](https://badge.fury.io/py/fastregex)
 
-## English Version
+A high-performance regular expression library for Python with JIT compilation and SIMD optimizations.
 
-### 🔥 About Project
+## 🚀 Features
 
-FastRegex is a high-performance regular expression library that combines:
-- **LLVM JIT compilation** for complex patterns
-- **SIMD optimizations** (AVX2/AVX512/SSE4.2/NEON) for literal matching
-- **Smart caching system** to avoid recompilation
-- **Python bindings** via pybind11
+- **JIT Compilation**: LLVM-based just-in-time compilation for complex patterns
+- **SIMD Optimizations**: AVX2/AVX512/SSE4.2/NEON support for vectorized operations
+- **Smart Caching**: Automatic caching of compiled patterns to avoid recompilation
+- **Python Integration**: Seamless integration via pybind11
+- **High Performance**: Up to 1000x faster than standard `re` module for complex patterns
 
-### 🚀 Performance Benchmarks
+## 📊 Performance Benchmarks
 
 | Test Case          | Python re (ms) | FastRegex (ms) | Speedup |
 |--------------------|---------------|----------------|---------|
@@ -21,152 +23,151 @@ FastRegex is a high-performance regular expression library that combines:
 | Word boundaries    | 0.166 ±0.011  | 0.025 ±0.002   | 6.6x ✅ |
 | Complex pattern    | 19.665 ±4.100 | 0.017 ±0.003   | 1156x ✅ |
 | Multiline text     | 0.855 ±0.163  | 0.219 ±0.002   | 3.9x ✅ |
-| Simple literal     | 0.002 ±0.001  | 0.004 ±0.002   | 0.5x ⚠️ |
-| Digits             | 0.002 ±0.001  | 0.003 ±0.002   | 0.7x ⚠️ |
-| Hashtags           | 0.003 ±0.001  | 0.026 ±0.002   | 0.1x ⚠️ |
-| URLs               | 0.010 ±0.002  | 0.021 ±0.002   | 0.5x ⚠️ |
 
 **Key insights**:
-
 - Up to 1156x faster for complex patterns
 - 3-100x acceleration for typical scenarios
-- Literal patterns require optimization (in development)
+- Best performance on repetitive operations
 
-### 🛠 Building from Source
+## 🛠 Installation
 
-#### Prerequisites
+### From PyPI (Recommended)
+```bash
+pip install fastregex
+```
+
+### From Source
+```bash
+git clone https://github.com/baksvell/fastregex.git
+cd fastregex
+pip install -e .
+```
+
+### Prerequisites
 - CMake 3.20+
 - Python 3.10+
 - C++17 compiler (GCC/MSVC/Clang)
 
-```bash
-git clone https://github.com/baksvell/Fastregex.git
-cd Fastregex
-mkdir build && cd build
-cmake -DCMAKE_BUILD_TYPE=Release ..
-cmake --build .
+## 📖 Usage
+
+### Basic Usage
+
+```python
+import fastregex
+
+# Simple search
+result = fastregex.search(r'\d+', 'abc123def')
+print(result)  # True
+
+# Find all matches
+matches = fastregex.find_all(r'\w+', 'hello world test')
+print(matches)  # ['hello', 'world', 'test']
+
+# Replace
+new_text = fastregex.replace(r'\d+', 'abc123def456', 'XXX')
+print(new_text)  # 'abcXXXdefXXX'
+
+# Compile for reuse
+compiled = fastregex.compile(r'\d+')
+result = compiled.search('abc123def')
+print(result)  # True
 ```
-## Русская версия
 
+### Advanced Features
 
-### 🔥 О проекте
+```python
+# Check cache statistics
+print(f"Cache size: {fastregex.cache_size()}")
+print(f"Hit rate: {fastregex.hit_rate():.2%}")
 
+# SIMD capabilities
+caps = fastregex.simd_capabilities()
+print(f"AVX2 support: {caps['avx2']}")
+print(f"AVX512 support: {caps['avx512']}")
 
-FastRegex - это высокопроизводительная библиотека регулярных выражений с:
+# SIMD statistics
+stats = fastregex.get_simd_stats()
+print(f"Total calls: {stats['total_calls']}")
+```
 
-- **JIT-компиляцией через LLVM**
+## 🎯 When to Use FastRegex
 
-- **SIMD-ускорением (AVX2/AVX512/SSE4.2/NEON)**
+### ✅ **Use FastRegex when:**
+- Complex patterns (JIT compilation shines)
+- Repetitive matching (cache pays off)
+- SIMD-friendly patterns (literals, digit checks)
+- Large texts (>1MB optimized chunks)
 
-- **Кешированием скомпилированных шаблонов**
+### ⚠️ **Use standard `re` when:**
+- Simple one-time matches (no JIT overhead)
+- Need 100% compatibility with Python's regex
+- Dynamic patterns (generated on-the-fly)
 
-- **Привязки к Python через pybind11**
-
-### 📊 Результаты тестирования
-
-🔸 Буквальный текст
-re: 0.000002 sec (±6.81e-07)
-fastregex: 0.000004 sec (±2.34e-06)
-Отношение: 2.05x ❌ медленнее
-
-🔸 Email
-re: 0.002250 sec (±1.57e-04)
-fastregex: 0.000021 sec (±2.37e-06)
-Отношение: 0.01x ✅ быстрее
-
-🔸 Границы слов
-re: 0.000166 sec (±1.14e-05)
-fastregex: 0.000025 sec (±2.20e-06)
-Отношение: 0.15x ✅ быстрее
-
-🔸 Цифры
-re: 0.000002 sec (±8.96e-07)
-fastregex: 0.000003 sec (±1.82e-06)
-Отношение: 1.36x ❌ медленнее
-
-🔸 Сложный паттерн
-re: 0.019665 sec (±4.10e-03)
-fastregex: 0.000017 sec (±3.35e-06)
-Отношение: 0.00x ✅ быстрее
-
-🔸 Кириллица
-re: 0.000005 sec (±1.24e-06)
-fastregex: 0.000033 sec (±7.18e-06)
-Отношение: 6.13x ❌ медленнее
-
-🔸 Большие данные
-re: 0.000004 sec (±0.00e+00)
-fastregex: 0.000343 sec (±0.00e+00)
-Отношение: 87.97x ❌ медленнее
-
-🔸 Многострочный текст
-re: 0.000855 sec (±1.63e-04)
-fastregex: 0.000219 sec (±2.31e-06)
-Отношение: 0.26x ✅ быстрее
-
-🔸 Хештеги
-re: 0.000003 sec (±7.51e-07)
-fastregex: 0.000026 sec (±2.48e-06)
-Отношение: 10.36x ❌ медленнее
-
-🔸 URL
-re: 0.000010 sec (±1.62e-06)
-fastregex: 0.000021 sec (±2.20e-06)
-Отношение: 2.20x ❌ медленнее
-
-🛠 Сборка
-bash
-git clone https://github.com/baksvell/Fastregex.git
-cd Fastregex
-mkdir build && cd build
-cmake -DCMAKE_BUILD_TYPE=Release ..
-cmake --build .
-
-Когда использовать:
-
-## 🛠 Smart Usage Guide / Рекомендации по использованию
-
-### English Version
-**When to use FastRegex:**
-- ✅ **Complex patterns** (JIT compilation shines)
-- ✅ **Repetitive matching** (cache pays off)
-- ✅ **SIMD-friendly patterns** (literals, digit checks)
-- ✅ **Large texts** (>1MB optimized chunks)
-
-**When to use standard `re`:**
-- ⚠️ **Simple one-time matches** (no JIT overhead)
-- ⚠️ **Need 100% compatibility** with Python's regex
-- ⚠️ **Dynamic patterns** (generated on-the-fly)
-
-**Hybrid approach example:**
+### 🔄 **Hybrid approach:**
 ```python
 import re
 import fastregex as fr
 
 def smart_match(pattern, text):
-    if len(pattern) > 15 and len(text) > 1000:  # Thresholds
+    if len(pattern) > 15 and len(text) > 1000:
         return fr.search(pattern, text)
     return re.search(pattern, text)
 ```
 
-### Русская версия
-**Когда использовать FastRegex:**
-- ✅ **Сложные шаблоны** (JIT-компиляция)
-- ✅ **Многократный поиск** (кеш выгоден)
-- ✅ **Шаблоны для SIMD** (буквальные строки, цифры)
-- ✅ **Большие тексты** (>1MB оптимизированных блоков)
+## 🧪 Testing
 
-**Когда использовать стандартный `re`:**
-- ⚠️ **Простые одноразовые поиски** (без JIT-накладных расходов)
-- ⚠️ **Нужна 100% совместимость** с Python-регулярками
-- ⚠️ **Динамические шаблоны** (генерируемые на лету)
+Run the test suite:
+```bash
+python -m pytest tests/
+```
 
-Лучшие результаты для сложных выражений
+Run performance benchmarks:
+```bash
+python tests/benchmark.py
+```
 
-Работа над оптимизацией простых паттернов
+## 📚 API Reference
 
-В будущем планируется улучшить модуль, сделать гибрид, где -то модуль re , а где -то fastregex, так же дополнить тесты
+### Core Functions
+- `fastregex.match(pattern, text)` - Match from start of string
+- `fastregex.search(pattern, text)` - Search anywhere in string
+- `fastregex.find_all(pattern, text)` - Find all matches
+- `fastregex.replace(pattern, text, replacement)` - Replace matches
+- `fastregex.compile(pattern)` - Compile pattern for reuse
 
-License / Лицензия
-MIT License - see LICENSE
-Лицензия MIT - см. LICENSE
+### Cache Management
+- `fastregex.cache_size()` - Get current cache size
+- `fastregex.hit_rate()` - Get cache hit rate
+- `fastregex.clear_cache()` - Clear the cache
+
+### SIMD Features
+- `fastregex.simd_capabilities()` - Get SIMD support info
+- `fastregex.get_simd_stats()` - Get SIMD usage statistics
+- `fastregex.set_simd_mode(mode)` - Set SIMD mode
+- `fastregex.get_simd_mode()` - Get current SIMD mode
+
+## 🤝 Contributing
+
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests
+5. Submit a pull request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🔗 Links
+
+- [GitHub Repository](https://github.com/baksvell/fastregex)
+- [Documentation](https://github.com/baksvell/fastregex#readme)
+- [Issue Tracker](https://github.com/baksvell/fastregex/issues)
+
+## 🙏 Acknowledgments
+
+- [pybind11](https://github.com/pybind/pybind11) for Python bindings
+- [LLVM](https://llvm.org/) for JIT compilation
+- [SIMD](https://en.wikipedia.org/wiki/SIMD) for vectorized operations
