@@ -275,30 +275,74 @@ FastRegex::FastRegex(FastRegex&&) noexcept = default;
 FastRegex& FastRegex::operator=(FastRegex&&) noexcept = default;
 
 bool FastRegex::match(const std::string& s) const {
-    return match(s.c_str(), s.size());
+    std::cout << "=== C++ MATCH STRING ENTRY ===" << std::endl;
+    std::cout << "string: '" << s << "'" << std::endl;
+    std::cout << "pattern_: '" << pattern_ << "'" << std::endl;
+    bool result = match(s.c_str(), s.size());
+    std::cout << "=== C++ MATCH STRING RESULT: " << result << " ===" << std::endl;
+    return result;
 }
 
 bool FastRegex::match(const char* str, size_t len) const {
-    if (!str) return false;
-
-    // Быстрые проверки для общих случаев
-    if (pattern_ == ".*") return true;
-    if (pattern_.empty()) return len == 0;
-    if (len == 0) return pattern_ == "^$" || pattern_ == ".*";
-
-    // Оптимизация для точного совпадения
-    if (pattern_.size() > 1 && pattern_[0] == '^' && pattern_.back() == '$') {
-        std::string content = pattern_.substr(1, pattern_.size()-2);
-        if (is_simple_literal(content)) {
-            return len == content.size() &&
-                   memcmp(str, content.c_str(), len) == 0;
-        }
+    std::cout << "=== C++ MATCH ENTRY ===" << std::endl;
+    std::cout << "str: " << (str ? "valid" : "null") << std::endl;
+    std::cout << "len: " << len << std::endl;
+    std::cout << "pattern_: '" << pattern_ << "'" << std::endl;
+    
+    if (!str) {
+        std::cout << "Early return: str is null" << std::endl;
+        return false;
     }
 
-    // Общий случай
-    return impl_->compiled_regex ?
-           llvm_regex_exec(impl_->compiled_regex, str, len, true) :
-           false;
+    // Быстрые проверки для общих случаев
+    if (pattern_ == ".*") {
+        std::cout << "Early return: pattern is .*" << std::endl;
+        return true;
+    }
+    if (pattern_.empty()) {
+        std::cout << "Early return: pattern is empty, len=" << len << std::endl;
+        return len == 0;
+    }
+    if (len == 0) {
+        std::cout << "Early return: len is 0" << std::endl;
+        return pattern_ == "^$" || pattern_ == ".*";
+    }
+
+    std::cout << "Entering main logic..." << std::endl;
+
+    // Для match() всегда ищем с начала строки
+    // Используем стандартный std::regex для точности
+    try {
+        // Создаем паттерн для match (с ^ в начале если его нет)
+        std::string match_pattern = pattern_;
+        if (match_pattern.empty() || match_pattern[0] != '^') {
+            match_pattern = "^" + match_pattern;
+        }
+        
+        std::cout << "DEBUG match: pattern='" << pattern_ 
+                  << "', match_pattern='" << match_pattern 
+                  << "', str='" << std::string(str, len) << "'" << std::endl;
+        
+        std::regex std_regex(match_pattern, std::regex_constants::ECMAScript);
+        std::cmatch match_result;
+        bool result = std::regex_match(str, str + len, match_result, std_regex);
+        
+        std::cout << "DEBUG match result: " << result << std::endl;
+        
+        return result;
+    } catch (const std::regex_error& e) {
+        std::cout << "DEBUG regex_error: " << e.what() << std::endl;
+        
+        // Fallback к простому поиску для литералов
+        if (is_simple_literal(pattern_)) {
+            bool result = len >= pattern_.size() &&
+                   memcmp(str, pattern_.c_str(), pattern_.size()) == 0;
+            std::cout << "DEBUG fallback result: " << result << std::endl;
+            return result;
+        }
+        std::cout << "DEBUG fallback: not a simple literal" << std::endl;
+        return false;
+    }
 }
 
 bool FastRegex::search(const std::string& s) const {

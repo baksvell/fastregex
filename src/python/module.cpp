@@ -5,6 +5,7 @@
 #include <chrono>
 #include <vector>
 #include <memory>
+#include <iostream>
 
 namespace py = pybind11;
 using namespace fastregex;
@@ -19,7 +20,6 @@ public:
                  RegexFlags flags = RegexFlags::NONE, bool enable_jit = false)
         : regex_(std::make_unique<FastRegex>(pattern, use_simd, false, flags)),
           jit_compiled_(false) {
-
         auto start = std::chrono::high_resolution_clock::now();
         // Упрощенная версия без SIMD
         jit_compiled_ = false;
@@ -29,6 +29,10 @@ public:
 
     bool match(const std::string& s) const {
         return regex_->match(s);
+    }
+    
+    void set_debug_mode(bool debug) {
+        regex_->set_debug_mode(debug);
     }
 
     bool search(const std::string& s) const {
@@ -168,6 +172,8 @@ PYBIND11_MODULE(fastregex, m) {
              "Compile a regex pattern for repeated use")
         .def("match", &CompiledRegex::match, py::arg("s"),
              "Test if the entire string matches the pattern")
+        .def("set_debug_mode", &CompiledRegex::set_debug_mode, py::arg("debug"),
+             "Enable or disable debug mode")
         .def("search", &CompiledRegex::search, py::arg("s"),
              "Search for first occurrence of pattern in string")
         .def("find_all", &CompiledRegex::find_all, py::arg("s"),

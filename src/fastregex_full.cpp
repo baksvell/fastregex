@@ -258,11 +258,17 @@ bool FastRegex::match(const char* str, size_t len) const {
         }
     }
 
-    // Общий случай
+    // Общий случай: соответствие с начала строки (поведение как re.match)
     if (impl_->compiled_regex) {
         try {
             std::string s(str, len);
-            return std::regex_match(s, *static_cast<std::regex*>(impl_->compiled_regex));
+            std::smatch m;
+            return std::regex_search(
+                s,
+                m,
+                *static_cast<std::regex*>(impl_->compiled_regex),
+                std::regex_constants::match_continuous
+            );
         } catch (const std::regex_error& e) {
             return false;
         }
