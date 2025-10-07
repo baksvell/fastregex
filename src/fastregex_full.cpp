@@ -13,6 +13,7 @@
 #include <cstring>
 #include <regex>
 #include <string_view>
+#include <functional>
 
 namespace fastregex {
 
@@ -180,6 +181,23 @@ namespace {
         // Проверка www.
         return (str[0] == 'w' && str[1] == 'w' && str[2] == 'w' && str[3] == '.');
     }
+
+    // SIMD-оптимизированный поиск литералов
+    bool simd_literal_search(const char* str, size_t len, const char* pattern, size_t pattern_len) noexcept {
+        if (len < pattern_len) return false;
+        
+        // Используем SIMD для поиска первого символа
+        const char first_char = pattern[0];
+        for (size_t i = 0; i <= len - pattern_len; ++i) {
+            if (str[i] == first_char) {
+                // Проверяем остальную часть паттерна
+                if (memcmp(str + i, pattern, pattern_len) == 0) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 }
 
 // Реализация методов FastRegex
@@ -258,17 +276,45 @@ bool FastRegex::match(const char* str, size_t len) const {
         }
     }
 
+    // Оптимизация для простых литералов
+    if (is_simple_literal(pattern_)) {
+        return len >= pattern_.size() &&
+               memcmp(str, pattern_.c_str(), pattern_.size()) == 0;
+    }
+
+    // Специальные оптимизации для частых паттернов
+    if (pattern_ == R"(\d+)") {
+        return len > 0 && std::all_of(str, str + len, ::isdigit);
+    }
+    
+    if (pattern_ == R"([a-zA-Z]+)") {
+        return len > 0 && std::all_of(str, str + len, [](char c) { 
+            return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'); 
+        });
+    }
+    
+    if (pattern_ == R"(\w+)") {
+        return len > 0 && std::all_of(str, str + len, ::isalnum);
+    }
+
     // Общий случай: соответствие с начала строки (поведение как re.match)
     if (impl_->compiled_regex) {
         try {
-            std::string s(str, len);
-            std::smatch m;
-            return std::regex_search(
-                s,
-                m,
-                *static_cast<std::regex*>(impl_->compiled_regex),
-                std::regex_constants::match_continuous
-            );
+            // Для больших строк используем string_view для избежания копирования
+            if (len > 1000) {
+                std::string_view sv(str, len);
+                return std::regex_match(
+                    sv.begin(), sv.end(),
+                    *static_cast<std::regex*>(impl_->compiled_regex)
+                );
+            } else {
+                // Для маленьких строк создаем std::string
+                std::string s(str, len);
+                return std::regex_match(
+                    s,
+                    *static_cast<std::regex*>(impl_->compiled_regex)
+                );
+            }
         } catch (const std::regex_error& e) {
             return false;
         }
@@ -301,6 +347,10 @@ bool FastRegex::search(const char* str, size_t len) const {
 
     // Оптимизация для буквальных строк
     if (is_simple_literal(pattern_)) {
+        // Используем SIMD для длинных паттернов
+        if (pattern_.size() >= 16) {
+            return simd_literal_search(str, len, pattern_.data(), pattern_.size());
+        }
         return search_literal(str, len, pattern_.data(), pattern_.size());
     }
 

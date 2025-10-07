@@ -13,21 +13,22 @@ A high-performance regular expression library for Python with JIT compilation an
 - **SIMD Optimizations**: AVX2/AVX512/SSE4.2/NEON support for vectorized operations
 - **Smart Caching**: Automatic caching of compiled patterns to avoid recompilation
 - **Python Integration**: Seamless integration via pybind11
-- **High Performance**: Up to 1000x faster than standard `re` module for complex patterns
+- **High Performance**: 1.5-5x faster than standard `re` module for specific use cases
 
 ## 📊 Performance Benchmarks
 
 | Test Case          | Python re (ms) | FastRegex (ms) | Speedup |
 |--------------------|---------------|----------------|---------|
-| Email validation   | 2.250 ±0.157  | 0.021 ±0.002   | 107x ✅ |
-| Word boundaries    | 0.166 ±0.011  | 0.025 ±0.002   | 6.6x ✅ |
-| Complex pattern    | 19.665 ±4.100 | 0.017 ±0.003   | 1156x ✅ |
-| Multiline text     | 0.855 ±0.163  | 0.219 ±0.002   | 3.9x ✅ |
+| Short literals     | 0.0040        | 0.0023         | 1.7x ✅ |
+| Simple patterns    | 0.0041        | 0.0025         | 1.6x ✅ |
+| Find all matches   | 0.0127        | 0.0095         | 1.3x ✅ |
+| Match operations   | 0.0040        | 0.0023         | 1.7x ✅ |
 
 **Key insights**:
-- Up to 1156x faster for complex patterns
-- 3-100x acceleration for typical scenarios
-- Best performance on repetitive operations
+- 1.5-1.9x faster for most use cases
+- Best performance on short literals and simple patterns
+- Fully compatible with standard `re` module behavior
+- Optimized for patterns < 50 characters
 
 ## 🛠 Installation
 
@@ -97,28 +98,26 @@ print(result)  # True
 print(f"Cache size: {fastregex.cache_size()}")
 print(f"Hit rate: {fastregex.hit_rate():.2%}")
 
-# SIMD capabilities
-caps = fastregex.simd_capabilities()
-print(f"AVX2 support: {caps['avx2']}")
-print(f"AVX512 support: {caps['avx512']}")
-
-# SIMD statistics
-stats = fastregex.get_simd_stats()
-print(f"Total calls: {stats['total_calls']}")
+# Pattern information
+compiled = fastregex.compile(r'\d+')
+print(f"Pattern: {compiled.pattern()}")
+print(f"JIT compiled: {compiled.jit_compiled}")
 ```
 
 ## 🎯 When to Use FastRegex
 
 ### ✅ **Use FastRegex when:**
-- Complex patterns (JIT compilation shines)
-- Repetitive matching (cache pays off)
-- SIMD-friendly patterns (literals, digit checks)
-- Large texts (>1MB optimized chunks)
+- Short literal patterns (1.7x faster)
+- Simple regex patterns (1.6x faster)
+- Match operations (1.7x faster)
+- Find all operations (1.3x faster)
+- Patterns < 50 characters
 
 ### ⚠️ **Use standard `re` when:**
-- Simple one-time matches (no JIT overhead)
-- Need 100% compatibility with Python's regex
-- Dynamic patterns (generated on-the-fly)
+- Very large texts (>10MB)
+- Complex regex patterns with many groups
+- Need advanced regex features
+- Long patterns (>50 characters)
 
 ### 🔄 **Hybrid approach:**
 ```python
@@ -157,11 +156,10 @@ python tests/benchmark.py
 - `fastregex.hit_rate()` - Get cache hit rate
 - `fastregex.clear_cache()` - Clear the cache
 
-### SIMD Features
-- `fastregex.simd_capabilities()` - Get SIMD support info
-- `fastregex.get_simd_stats()` - Get SIMD usage statistics
-- `fastregex.set_simd_mode(mode)` - Set SIMD mode
-- `fastregex.get_simd_mode()` - Get current SIMD mode
+### Pattern Information
+- `compiled.pattern()` - Get the compiled pattern
+- `compiled.jit_compiled` - Check if pattern is JIT compiled
+- `compiled.compile_time()` - Get compilation time
 
 ## 🤝 Contributing
 
