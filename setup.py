@@ -43,7 +43,7 @@ setup(
     author="baksvell",
     author_email="patsi2@yandex.ru",
     description="High-performance regex with JIT/SIMD optimizations",
-    long_description=open("README.md", encoding="utf-8").read(),
+    long_description=open("README.md", encoding="utf-8").read() if os.path.exists("README.md") else "High-performance regex with JIT/SIMD optimizations",
     long_description_content_type="text/markdown",
     url="https://github.com/baksvell/Fastregex",
     project_urls={
@@ -55,33 +55,6 @@ setup(
     cmdclass={"build_ext": CMakeBuildExt},
     packages=[],  # Не используем packages, так как у нас нативное расширение
     python_requires=">=3.10",
-    install_requires=[
-        "pybind11>=2.10",
-    ],
-    extras_require={
-        "dev": [
-            "pytest>=6.0",
-            "pytest-benchmark>=3.0",
-            "numpy>=1.20",
-        ],
-        "benchmark": [
-            "numpy>=1.20",
-            "matplotlib>=3.0",
-        ],
-    },
-    classifiers=[
-        "Development Status :: 3 - Alpha",
-        "Intended Audience :: Developers",
-        "License :: OSI Approved :: MIT License",
-        "Programming Language :: C++",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.10",
-        "Programming Language :: Python :: 3.11",
-        "Programming Language :: Python :: 3.12",
-        "Topic :: Text Processing :: General",
-        "Topic :: Software Development :: Libraries :: Python Modules",
-        "Operating System :: OS Independent",
-    ],
     keywords="regex regular expressions performance optimization JIT SIMD",
     zip_safe=False,  # Важно для нативных расширений
 )

@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  fastregex:
+    build: .
+    container_name: fastregex-dev
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: tail -f /dev/null  # Держит контейнер запущенным
+    
+  # Сервис для тестирования
+  fastregex-test:
+    build: .
+    container_name: fastregex-test
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: python -m pytest tests/ -v

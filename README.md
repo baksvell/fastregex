@@ -32,6 +32,23 @@ A high-performance regular expression library for Python with JIT compilation an
 ## 🛠 Installation
 
 ### From PyPI (Recommended)
+### Using Docker (Recommended)
+```bash
+# Clone the repository
+git clone https://github.com/baksvell/fastregex.git
+cd fastregex
+
+# Run with Docker
+docker-compose up -d fastregex
+
+# Enter the container
+docker exec -it fastregex-dev bash
+
+# Use FastRegex
+python -c "import fastregex; print('FastRegex ready!')"
+```
+
+### From PyPI
 ```bash
 pip install fastregex
 ```

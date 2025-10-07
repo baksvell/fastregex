@@ -7,7 +7,7 @@ name = "fastregex"
 version = "0.1.0"
 description = "High-performance regex with JIT/SIMD optimizations"
 readme = "README.md"
-license = {text = "MIT"}
+license = "MIT"
 authors = [
     {name = "baksvell", email = "patsi2@yandex.ru"}
 ]
@@ -18,7 +18,6 @@ keywords = ["regex", "regular expressions", "performance", "optimization", "JIT"
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: C++",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",

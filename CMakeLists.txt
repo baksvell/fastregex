@@ -28,10 +28,20 @@ set(CMAKE_RELWITHDEBINFO_POSTFIX "_rd")
 set(CMAKE_MINSIZEREL_POSTFIX "_ms")
 
 # Поиск Python
-find_package(Python 3.10 REQUIRED COMPONENTS Interpreter Development.Module)
+if(WIN32)
+    find_package(Python 3.10 REQUIRED COMPONENTS Interpreter Development.Module)
+else()
+    # Для Linux/Docker
+    find_package(Python 3.12 REQUIRED COMPONENTS Interpreter Development.Module)
+endif()
 
 # Поиск pybind11
-set(pybind11_DIR "C:/Python312/Lib/site-packages/pybind11/share/cmake/pybind11")
+if(WIN32)
+    set(pybind11_DIR "C:/Python312/Lib/site-packages/pybind11/share/cmake/pybind11")
+else()
+    # Для Linux/Docker
+    set(pybind11_DIR "/usr/local/lib/python3.12/site-packages/pybind11/share/cmake/pybind11")
+endif()
 find_package(pybind11 REQUIRED CONFIG)
 
 # Настройки для LLVM/JIT
@@ -144,19 +154,23 @@ function(copy_dll_to_build dll_path)
     endif()
 endfunction()
 
-# Поиск и копирование Python DLL
-find_file(PYTHON_DLL
-    NAMES "python${Python_VERSION_MAJOR}${Python_VERSION_MINOR}.dll"
-    PATHS
-        "${Python_RUNTIME_LIBRARY_DIRS}"
-        "${Python_ROOT_DIR}"
-        "$ENV{USERPROFILE}/AppData/Local/Programs/Python/Python${Python_VERSION_MAJOR}${Python_VERSION_MINOR}"
-    NO_DEFAULT_PATH
-)
-if(PYTHON_DLL)
-    copy_dll_to_build("${PYTHON_DLL}")
+# Поиск и копирование Python DLL (только для Windows)
+if(WIN32)
+    find_file(PYTHON_DLL
+        NAMES "python${Python_VERSION_MAJOR}${Python_VERSION_MINOR}.dll"
+        PATHS
+            "${Python_RUNTIME_LIBRARY_DIRS}"
+            "${Python_ROOT_DIR}"
+            "$ENV{USERPROFILE}/AppData/Local/Programs/Python/Python${Python_VERSION_MAJOR}${Python_VERSION_MINOR}"
+        NO_DEFAULT_PATH
+    )
+    if(PYTHON_DLL)
+        copy_dll_to_build("${PYTHON_DLL}")
+    else()
+        message(FATAL_ERROR "Python DLL not found! Searched in: ${Python_RUNTIME_LIBRARY_DIRS} and ${Python_ROOT_DIR}")
+    endif()
 else()
-    message(FATAL_ERROR "Python DLL not found! Searched in: ${Python_RUNTIME_LIBRARY_DIRS} and ${Python_ROOT_DIR}")
+    message(STATUS "Linux/Docker: Python DLL не требуется")
 endif()
 
 # Копирование всех необходимых MinGW DLL
